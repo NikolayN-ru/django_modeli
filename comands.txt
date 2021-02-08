@@ -1,0 +1,152 @@
+from news.models import *  - импорт наших моделей
+
+
+--- Создать двух пользователей (с помощью метода User.objects.create_user). ---
+u1 = User.objects.create_user(username='Jak')
+u2 = User.objects.create_user(username='Mia')
+
+
+--- Создать два объекта модели Author, связанные с пользователями. ---
+Author.objects.create(user=u1)
+Author.objects.create(user=u2)
+
+
+--- Добавить 4 категории в модель Category. ---
+Category.objects.create(category='Новости')
+Category.objects.create(category='политика')
+Category.objects.create(category='спорт')
+Category.objects.create(category='экономика')
+
+
+
+
+--- Добавить 2 статьи и 1 новость. ---
+a1 = Author.objects.get(user=u1)
+a2 = Author.objects.get(user=u2)
+
+Post.objects.create(author=a1, choice='s', title='заголовок статьи_1', content = 'Тело статьи один')
+
+Post.objects.create(author=a1, choice='s', title='заголовок статьи_2', content = 'Тело статьи два')
+
+Post.objects.create(author=a2, choice='h', title='заголовок новости_1', content = 'Тело новости один')
+
+
+
+
+--- Присвоить им категории (как минимум в одной статье/новости должно быть не меньше 2 категорий). ---
+
+p = Post.objects.all() -> <QuerySet [<Post: заголовок статьи_1>, <Post: заголовок статьи_2>, <Post: заголовок новости_1>]>
+
+c = Category.objects.all() -> <QuerySet [<Category: Новости>, <Category: политика>, <Category: спорт>, <Category: экономика>]>
+
+p[0].category.add(c[0])
+p[0].category.add(c[1])
+
+p[2].category.add(c[1])
+p[2].category.add(c[3])
+
+
+
+
+--- Создать как минимум 4 комментария к разным объектам модели Post (в каждом объекте должен быть как минимум один комментарий). ---
+
+Comment.objects.create(post=p[2], user=a1, content='каментирующий коментарий_первый')
+
+Comment.objects.create(post=p[1], user=a2, content='каментирующий коментарий_второй')
+
+Comment.objects.create(post=p[0], user=a2, content='каментирующий коментарий_третий')
+
+Comment.objects.create(post=p[0], user=a1, content='каментирующий коментарий_четвертый')
+Out[41]: <Comment: каментирующий коментарий_четвертый>
+
+
+
+--- Применяя функции like() и dislike() к статьям/новостям и комментариям, скорректировать рейтинги этих объектов. ---
+
+получаем кверисет коментариев ->> com = Comment.objects.all()
+
+com[0].raiting ->> 0
+com[0].like()
+com[0].like()
+com[0].like()
+com[0].dislike()
+com[0].raiting ->> 2
+
+com[1].like()
+com[1].like()
+
+com[2].like()
+
+com[3].like()
+com[3].like()
+com[3].like()
+com[3].like()
+com[3].raiting ->> 4
+
+
+p[0].like()
+p[0].like()
+p[0].like()
+
+p[1].like()
+
+p[2].like()
+p[2].like()
+p[2].like()
+p[2].dislike()
+
+
+
+--- 8. Обновить рейтинги пользователей. ---
+
+a1.user ->> смотрим имя
+a1.reit ->> смотрим рейтинг
+
+a2.user ->> смотрим имя
+a2.reit ->> смотрим рейтинг
+
+a1.update_rating() ->> обновляем рейтинги для Jak
+
+сумарный рейтинг каждой статьи 12
+сумарный рейтинг всех комментариев автора равен 6
+суммарный рейтинг всех комментариев к статьям автора равен 7.
+
+a1.update_rating() ->> обновляем рейтинги для Mia
+
+сумарный рейтинг каждой статьи 6
+сумарный рейтинг всех комментариев автора равен 3
+суммарный рейтинг всех комментариев к статьям автора равен 0.
+
+
+
+
+--- 9. Вывести username и рейтинг лучшего пользователя (применяя сортировку и возвращая поля первого объекта). ---
+
+for i in  Author.objects.order_by('-reit')[:1]: print(i.user, i.reit)
+
+->> Jak 25
+
+
+
+
+
+--- 10. Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи, основываясь на лайках/дислайках к этой статье. ---
+
+p = (Post.objects.filter(choice='s').order_by('-raiting'))[0]
+
+print(p.date, p.author.user, p.raiting, p.title, p.preview())
+->>
+2021-02-08 09:43:45.874000+00:00 Jak 3 заголовок статьи_1 Тело статьи один...
+
+
+
+--- 11. Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье. ---
+
+c = Comment.objects.filter(post=p)
+
+for i in c:
+	print(i.created, i.user.user, i.raiting, i.content)
+
+2021-02-08 09:41:10.141841+00:00 Mia 1 каментирующий коментарий_третий
+2021-02-08 09:41:45.828533+00:00 Jak 4 каментирующий коментарий_четвертый
+---------------------------------------------------------------------------
